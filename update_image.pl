@@ -10,10 +10,11 @@ my $op_target_dir = "";
 my $hb_image_dir = "";
 my $scratch_dir = "";
 my $hb_binary_dir = "";
+my $sbe_binary_dir = "";
 my $targeting_binary_filename = "";
 my $targeting_binary_source = "";
+my $sbe_binary_filename = "";
 my $sbec_binary_filename = "";
-my $sbe_binary_dir = "";
 my $wink_binary_filename = "";
 my $occ_binary_filename = "";
 my $capp_binary_filename = "";
@@ -21,8 +22,6 @@ my $ima_catalog_binary_filename = "";
 my $openpower_version_filename = "";
 my $payload = "";
 my $xz_compression = 0;
-my @ec_levels = ();
-my %ec_val = ("DD1","10","DD2","20");
 
 while (@ARGV > 0){
     $_ = $ARGV[0];
@@ -44,10 +43,6 @@ while (@ARGV > 0){
         $hb_image_dir = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
         shift;
     }
-    elsif (/^-sbe_binary_dir/i){
-        $sbe_binary_dir = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
-        shift;
-    }
     elsif (/^-scratch_dir/i){
         $scratch_dir = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
         shift;
@@ -56,8 +51,8 @@ while (@ARGV > 0){
         $hb_binary_dir = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
         shift;
     }
-    elsif (/^-ec_levels/i){
-        @ec_levels = split(',', $ARGV[1]) or die "Bad command line arg given: expecting a config type.\n";
+    elsif (/^-sbe_binary_dir/i){
+        $sbe_binary_dir = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
         shift;
     }
     elsif (/^-targeting_binary_filename/i){
@@ -66,6 +61,10 @@ while (@ARGV > 0){
     }
     elsif (/^-targeting_binary_source/i){
         $targeting_binary_source = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
+        shift;
+    }
+    elsif (/^-sbe_binary_filename/i){
+        $sbe_binary_filename = $ARGV[1] or die "Bad command line arg given: expecting a config type.\n";
         shift;
     }
     elsif (/^-sbec_binary_filename/i){
@@ -172,21 +171,10 @@ if ($release eq "p9") {
 
 #SBE image prep
 if ($release eq "p9") {
-    foreach (@ec_levels) {
-        my $stop_basename = "p9n_$ec_val{$_}.sbe_seeprom";
-        my $sbe_out_image = "nimbus_sbe.img";
-        run_command("cp $sbe_binary_dir/$stop_basename.bin $scratch_dir/$stop_basename.bin");
-        run_command("p9_ipl_build $scratch_dir/$stop_basename.bin $hb_binary_dir/p9n.ref_image.bin 0x$ec_val{$_}");
-        #add pnor header
-        run_command("env echo -en VERSION\\\\0 > $scratch_dir/${stop_basename}.sha.bin");
-        run_command("sha512sum $scratch_dir/$stop_basename.bin | awk \'{print \$1}\' | xxd -pr -r >> $scratch_dir/${stop_basename}.sha.bin");
-        run_command("dd if=$scratch_dir/${stop_basename}.sha.bin of=$scratch_dir/${stop_basename}.hdr.bin ibs=4k conv=sync");
-        run_command("cat $scratch_dir/${stop_basename}.bin >> $scratch_dir/${stop_basename}.hdr.bin");
-
-        run_command("$hb_image_dir/buildSbePart.pl --sbeOutBin $scratch_dir/$sbe_out_image --ecImg_$ec_val{$_} $scratch_dir/$stop_basename.hdr.bin");
-        run_command("dd if=$scratch_dir/$sbe_out_image of=$scratch_dir/$sbe_out_image.256K ibs=256K conv=sync");
-        run_command("ecc --inject $scratch_dir/$sbe_out_image.256K --output $scratch_dir/$sbe_out_image.ecc --p8");
-    }
+    run_command("python $sbe_binary_dir/sbeOpDistribute.py --install --buildSbePart $hb_image_dir/buildSbePart.pl --hw_ref_image $hb_binary_dir/p9n.ref_image.bin --sbe_binary_filename $sbe_binary_filename --scratch_dir $scratch_dir --sbe_binary_dir $sbe_binary_dir");
+}
+else {
+    run_command("cp $hb_binary_dir/$sbe_binary_filename $scratch_dir/");
 }
 
 #Create blank binary file for HB Errorlogs (HBEL) Partition
