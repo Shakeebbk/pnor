@@ -23,6 +23,8 @@ my $wofdata_binary_filename = "";
 my $memddata_binary_filename = "";
 my $hdat_binary_filename = "";
 
+my $sbe_hash_binary_filename = "sbe_hash.bin";
+
 while (@ARGV > 0){
     $_ = $ARGV[0];
     chomp($_);
@@ -127,6 +129,7 @@ my $build_pnor_command = "$hb_image_dir/buildpnor.pl";
 $build_pnor_command .= " --pnorOutBin $pnor_filename --pnorLayout $xml_layout_file";
 $build_pnor_command .= " --binFile_HBD $scratch_dir/$targeting_binary_filename";
 $build_pnor_command .= " --binFile_SBE $scratch_dir/$sbe_binary_filename";
+$build_pnor_command .= " --binFile_SBE_HASH $scratch_dir/$sbe_hash_binary_filename";
 $build_pnor_command .= " --binFile_HBB $scratch_dir/hostboot.header.bin.ecc";
 $build_pnor_command .= " --binFile_HBI $scratch_dir/hostboot_extended.header.bin.ecc";
 $build_pnor_command .= " --binFile_HBRT $scratch_dir/hostboot_runtime.header.bin.ecc";

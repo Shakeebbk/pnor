@@ -362,4 +362,12 @@ Layout Description
         <readOnly/>
         <ecc/>
     </section>
+    <section>
+        <description>SBE hashes Partition (4KB)</description>
+        <eyeCatch>SBE_HASH</eyeCatch>
+        <physicalOffset>0x2F86000</physicalOffset>
+        <physicalRegionSize>0x1000</physicalRegionSize>
+        <side>A</side>
+        <readOnly/>
+    </section>
 </pnor>

@@ -35,6 +35,8 @@ my $debug = 0;
 my $sign_mode = "";
 my $hdat_binary_filename = "";
 
+my $sbe_hash_binary_filename = "sbe_hash.bin";
+
 while (@ARGV > 0){
     $_ = $ARGV[0];
     chomp($_);
@@ -223,7 +225,15 @@ if ($release eq "p9") {
 
 # SBE image prep
 if ($release eq "p9") {
-    run_command("python $sbe_binary_dir/sbeOpDistribute.py --install --buildSbePart $hb_image_dir/buildSbePart.pl --hw_ref_image $hcode_dir/p9n.ref_image.bin --sbe_binary_filename $sbe_binary_filename --scratch_dir $scratch_dir --sbe_binary_dir $sbe_binary_dir");
+    my $cmd = "python $sbe_binary_dir/sbeOpDistribute.py --install ".
+                       "--buildSbePart $hb_image_dir/buildSbePart.pl ".
+                       "--hw_ref_image $hcode_dir/p9n.ref_image.bin ".
+                       "--sbe_binary_filename $sbe_binary_filename ".
+                       "--scratch_dir $scratch_dir ".
+                       "--sbe_binary_dir $sbe_binary_dir ".
+                       "--sbe_hash_binary_filename $sbe_hash_binary_filename ".
+                       "--hbbl_binary $scratch_dir/hbbl.bin";
+    run_command($cmd);
 }
 else {
     run_command("cp $hb_binary_dir/$sbe_binary_filename $scratch_dir/");
@@ -252,6 +262,8 @@ sub processConvergedSections {
     $sections{HBD}{out}         = "$scratch_dir/$targeting_binary_filename";
     $sections{SBE}{in}          = "$sbePreEcc";
     $sections{SBE}{out}         = "$scratch_dir/$sbe_binary_filename";
+    $sections{SBE_HASH}{in}     = "$scratch_dir/$sbe_hash_binary_filename";
+    $sections{SBE_HASH}{out}    = "$scratch_dir/$sbe_hash_binary_filename";
     $sections{PAYLOAD}{in}      = "$payload.bin";
     $sections{PAYLOAD}{out}     = "$scratch_dir/$payload_filename";
     $sections{HCODE}{in}        = "$hcode_dir/${stop_basename}.bin";
